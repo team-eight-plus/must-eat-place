@@ -13,5 +13,10 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     show-sql: true
+
+
+login-info:
+  naver-client-id: ${NAVER_CLIENT_ID}
+  naver-clinet-secret: ${NAVER_CLIENT_SECRET}
