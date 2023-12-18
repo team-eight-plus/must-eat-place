@@ -9,7 +9,13 @@ class Search(
   val keywordId: Long?  = null,
 
   @Column
+  val keyword: String,
+
+  @Column
   val title: String,
+
+  @Column
+  val link: String,
 
   @Column
   val category: String,
@@ -22,4 +28,13 @@ class Search(
 
   @Column
   val address: String,
+
+  @Column
+  val roadAddress: String,
+
+  @Column
+  val mapx: String,
+
+  @Column
+  val mapy: String,
 )
