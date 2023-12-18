@@ -1,5 +1,12 @@
 package com.go.musteatplace.search.presentation.dto
 
+data class NaverSearchResponse(
+  val lastBuildDate: String,
+  val total: Int,
+  val start: Int,
+  val display: Int,
+  val items: List<SearchResultsDto>
+)
 data class SearchResultsDto(
   val title: String,
   val link: String,
@@ -12,7 +19,7 @@ data class SearchResultsDto(
   val mapy: String,
 )
 
-//class SearchResponse {
-//  val keyword: String,
-//  val searchResults: List<SearchResultsDto>,
-//}
+data class SearchResponse(
+  val keyword: String,
+  val searchResults: List<SearchResultsDto>
+)

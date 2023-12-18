@@ -1,5 +1,11 @@
 package com.go.musteatplace.search.application
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.go.musteatplace.search.presentation.dto.NaverSearchResponse
+import com.go.musteatplace.search.presentation.dto.SearchRequest
+import com.go.musteatplace.search.presentation.dto.SearchResponse
+import com.go.musteatplace.search.presentation.dto.SearchResultsDto
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
@@ -9,11 +15,9 @@ import java.nio.charset.StandardCharsets
 
 
 @Service
-class SearchService(
-//    private val searchRepository: SearchRepository,
-) {
-    fun getSearchInfos(keyword: String) {
-        println(keyword)
+class SearchService(private val objectMapper: ObjectMapper) {
+  fun getSearchResults(searchParam: SearchRequest): SearchResponse {
+        val (keyword) = searchParam
         val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
         val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
 
@@ -38,10 +42,16 @@ class SearchService(
             .header("X-Naver-Client-Secret", naverOpenApiSecret)
             .build()
 
-        val res= restTemplate.exchange(req, String::class.java)
-        val searchResult = res.body
-        println(searchResult)
+        val res = restTemplate.exchange(req, String::class.java)
+        val searchResults = parseSearchResults(res.body)
 
-        return
+        return SearchResponse(keyword, searchResults)
     }
+
+    fun parseSearchResults(json: String?): List<SearchResultsDto> {
+      json ?: return emptyList()
+
+      val naverSearchResponse = objectMapper.readValue<NaverSearchResponse>(json)
+      return naverSearchResponse.items
+  }
 }

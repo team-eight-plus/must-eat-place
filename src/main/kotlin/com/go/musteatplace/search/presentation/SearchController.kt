@@ -1,7 +1,9 @@
 package com.go.musteatplace.search.presentation
 
 import com.go.musteatplace.search.application.SearchService
+import com.go.musteatplace.search.presentation.dto.ApiResponse
 import com.go.musteatplace.search.presentation.dto.SearchRequest
+import com.go.musteatplace.search.presentation.dto.createApiResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
 
@@ -13,7 +15,8 @@ class SearchController(
     @GetMapping("/naver")
     fun getSearchInfos(
         @Valid @ModelAttribute searchParam: SearchRequest
-    ) {
-      return searchService.getSearchInfos(searchParam.keyword)
+    ): ApiResponse {
+      val result = searchService.getSearchResults(searchParam)
+      return createApiResponse(data = result)
     }
 }
