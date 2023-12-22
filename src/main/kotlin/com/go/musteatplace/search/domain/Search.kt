@@ -5,8 +5,8 @@ import jakarta.persistence.*
 @Entity
 class Search(
   @Id
-  @GeneratedValue(strategy= GenerationType.IDENTITY)
-  val keywordId: Long?  = null,
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  val keywordId: Long? = null,
 
   @Column
   val keyword: String,

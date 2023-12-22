@@ -11,16 +11,16 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/search")
 class SearchController(
-    val searchService: SearchService
+  val searchService: SearchService
 ) {
-    @GetMapping("/naver")
-    fun getSearchInfos(
-        @Valid @ModelAttribute searchParam: SearchRequest
-    ): ApiResponse {
-      val result = searchService.getSearchResults(searchParam)
-      if (result.searchResults.isEmpty()) {
-        throw EmptyResultException("No search results found for the keyword: ${searchParam.keyword}")
-      }
-      return createApiResponse(data = result)
+  @GetMapping("/naver")
+  fun getSearchInfos(
+    @Valid @ModelAttribute searchParam: SearchRequest
+  ): ApiResponse {
+    val result = searchService.getSearchResults(searchParam)
+    if (result.searchResults.isEmpty()) {
+      throw EmptyResultException("No search results found for the keyword: ${searchParam.keyword}")
     }
+    return createApiResponse(data = result)
+  }
 }
