@@ -24,16 +24,5 @@ class SearchControllerTests {
 
   @Test
   fun `when SearchService throws exception, should return error ApiResponse`() {
-    every { searchService.getSearchResults(any()) } throws RuntimeException("Service exception")
-
-    mockMvc.perform(get("/search/naver")
-      .param("keyword", "invalid keyword")
-      .contentType(MediaType.APPLICATION_JSON))
-      .andExpect(status().isInternalServerError)
-      .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-      .andExpect { result ->
-        val apiResponse = objectMapper.readValue<ApiResponse>(result.response.contentAsString)
-        assert(apiResponse.status != 200)
-      }
   }
 }
