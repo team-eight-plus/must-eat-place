@@ -19,11 +19,21 @@ import java.nio.charset.StandardCharsets
 @Service
 class SearchService(private val objectMapper: ObjectMapper) {
   fun getSearchResults(searchParam: SearchRequest): SearchResponse {
-    val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
-    val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
-
     val (keyword) = searchParam
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
+
+    try {
+      val searchResults = naverSearchResults(encodedKeyword)
+
+      return SearchResponse(keyword, searchResults)
+    } catch (e: RestClientException) {
+      throw ServiceException("Failed to fetch search results", e)
+    }
+  }
+
+  fun naverSearchResults(encodedKeyword: String): List<SearchResultsDto> {
+    val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
+    val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
 
     val uri = UriComponentsBuilder
       .fromUriString("https://openapi.naver.com")
@@ -43,15 +53,8 @@ class SearchService(private val objectMapper: ObjectMapper) {
       .header("X-Naver-Client-Id", naverOpenApiId)
       .header("X-Naver-Client-Secret", naverOpenApiSecret)
       .build()
-
-    try {
-      val res = restTemplate.exchange(req, String::class.java)
-      val searchResults = parseSearchResults(res.body)
-
-      return SearchResponse(keyword, searchResults)
-    } catch (e: RestClientException) {
-      throw ServiceException("Failed to fetch search results", e)
-    }
+    val res = restTemplate.exchange(req, String::class.java)
+    return parseSearchResults(res.body)
   }
 
   fun parseSearchResults(json: String?): List<SearchResultsDto> {
