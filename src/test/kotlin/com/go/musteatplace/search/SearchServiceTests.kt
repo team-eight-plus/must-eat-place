@@ -36,4 +36,21 @@ class SearchServiceTest {
     assertEquals(expectedExceptionMessage, exception.message)
   }
 
+  @Test
+  fun `kakaoSearchResults handles RestClientException`() {
+    val encodedKeyword = "encodedKeyword"
+    val failMessage = """{"errorType":"AccessDeniedError","message":"wrong appKey(null) format"}"""
+    val expectedExceptionMessage = "401 Unauthorized: \"$failMessage\""
+
+
+    every {
+      restTemplate.exchange(any<RequestEntity<String>>(), eq(String::class.java))
+    } throws RestClientException(expectedExceptionMessage)
+
+    val exception = assertThrows<RestClientException> {
+      searchService.kakaoSearchResults(encodedKeyword)
+    }
+
+    assertEquals(expectedExceptionMessage, exception.message)
+  }
 }
