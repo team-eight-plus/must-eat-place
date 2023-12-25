@@ -1,6 +1,5 @@
 package com.go.musteatplace.search.presentation
 
-import com.go.musteatplace.common.exception.EmptyResultException
 import com.go.musteatplace.search.application.SearchService
 import com.go.musteatplace.search.presentation.dto.ApiResponse
 import com.go.musteatplace.search.presentation.dto.SearchRequest
