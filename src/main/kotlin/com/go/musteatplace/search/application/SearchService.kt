@@ -15,22 +15,19 @@ import java.nio.charset.StandardCharsets
 
 @Service
 class SearchService(private val objectMapper: ObjectMapper) {
-  fun getSearchResults(searchParam: SearchRequest): List<Any>? {
+  fun getSearchResults(searchParam: SearchRequest): SearchResponse {
     val (keyword) = searchParam
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
 
     try {
-      val searchResults = naverSearchResults(encodedKeyword)
-      if (searchResults != null) {
-        return searchResults
-      }
-      return kakaoSearchResults(encodedKeyword)
+      val searchResults = naverSearchResults(encodedKeyword) ?: kakaoSearchResults(encodedKeyword)
+      return SearchResponse(keyword, searchResults ?: emptyList())
     } catch (e: RestClientException) {
       throw ServiceException("Failed to fetch search results", e)
     }
   }
 
-  fun naverSearchResults(encodedKeyword: String): List<Any>? {
+  fun naverSearchResults(encodedKeyword: String): List<SearchResultsDto>? {
     val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
     val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
 
@@ -56,7 +53,7 @@ class SearchService(private val objectMapper: ObjectMapper) {
     return parseSearchResults(res.body, "NAVER")
   }
 
-  fun kakaoSearchResults(encodedKeyword: String): List<Any>? {
+  fun kakaoSearchResults(encodedKeyword: String): List<SearchResultsDto>? {
     val kakaoApiKey = System.getenv("KAKAO_REST_API_KEY")
 
     val uri = UriComponentsBuilder
@@ -77,18 +74,18 @@ class SearchService(private val objectMapper: ObjectMapper) {
     return parseSearchResults(res.body, "KAKAO")
   }
 
-  fun parseSearchResults(json: String?, serviceType: String): List<Any>? {
+  fun parseSearchResults(json: String?, serviceType: String): List<SearchResultsDto>? {
     json ?: return emptyList()
 
     try {
       return when (serviceType) {
         "NAVER" -> {
           val naverSearchResponse = objectMapper.readValue<NaverSearchResponse>(json)
-          naverSearchResponse.items
+          naverSearchResponse.items.map { NaverSearchResultsAdapter(it) }
         }
         else -> { // "KAKAO"
           val kakaoSearchResponse = objectMapper.readValue<KakaoSearchResponse>(json)
-          kakaoSearchResponse.documents
+          kakaoSearchResponse.documents.map { KakaoSearchResultsAdapter(it) }
         }
       }
     } catch (e: JsonProcessingException) {

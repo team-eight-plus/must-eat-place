@@ -18,11 +18,6 @@ class SearchController(
     @Valid @ModelAttribute searchParam: SearchRequest
   ): ApiResponse {
     val result = searchService.getSearchResults(searchParam)
-    if (result != null) {
-      if (result.isEmpty()) {
-        throw EmptyResultException("No search results found for the keyword: ${searchParam.keyword}")
-      }
-    }
     return createApiResponse(data = result)
   }
 }
