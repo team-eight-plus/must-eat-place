@@ -20,14 +20,15 @@ class SearchService(private val objectMapper: ObjectMapper) {
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
 
     try {
-      val searchResults = naverSearchResults(encodedKeyword) ?: kakaoSearchResults(encodedKeyword)
+      val searchResultsJson = naverSearchResults(encodedKeyword) ?: kakaoSearchResults(encodedKeyword)
+      val searchResults = parseSearchResults(searchResultsJson, if (searchResultsJson == naverSearchResults(encodedKeyword)) "NAVER" else "KAKAO")
       return SearchResponse(keyword, searchResults ?: emptyList())
     } catch (e: RestClientException) {
       throw ServiceException("Failed to fetch search results", e)
     }
   }
 
-  fun naverSearchResults(encodedKeyword: String): List<SearchResultsDto>? {
+  fun naverSearchResults(encodedKeyword: String): String? {
     val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
     val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
 
@@ -49,11 +50,10 @@ class SearchService(private val objectMapper: ObjectMapper) {
       .header("X-Naver-Client-Id", naverOpenApiId)
       .header("X-Naver-Client-Secret", naverOpenApiSecret)
       .build()
-    val res = restTemplate.exchange(req, String::class.java)
-    return parseSearchResults(res.body, "NAVER")
+    return restTemplate.exchange(req, String::class.java).body
   }
 
-  fun kakaoSearchResults(encodedKeyword: String): List<SearchResultsDto>? {
+  fun kakaoSearchResults(encodedKeyword: String): String? {
     val kakaoApiKey = System.getenv("KAKAO_REST_API_KEY")
 
     val uri = UriComponentsBuilder
@@ -70,8 +70,7 @@ class SearchService(private val objectMapper: ObjectMapper) {
       .get(uri)
       .header("Authorization", "KakaoAK ${kakaoApiKey}")
       .build()
-    val res = restTemplate.exchange(req, String::class.java)
-    return parseSearchResults(res.body, "KAKAO")
+    return restTemplate.exchange(req, String::class.java).body
   }
 
   fun parseSearchResults(json: String?, serviceType: String): List<SearchResultsDto>? {
