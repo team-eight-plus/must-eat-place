@@ -79,7 +79,7 @@ class SearchService(private val objectMapper: ObjectMapper) {
 
   fun parseSearchResults(json: String?, serviceType: String): List<Any>? {
     json ?: return emptyList()
-    println(json)
+
     try {
       return when (serviceType) {
         "NAVER" -> {
