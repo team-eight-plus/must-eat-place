@@ -1,6 +1,5 @@
 package com.go.musteatplace.search.presentation
 
-import com.go.musteatplace.common.exception.EmptyResultException
 import com.go.musteatplace.search.application.SearchService
 import com.go.musteatplace.search.presentation.dto.ApiResponse
 import com.go.musteatplace.search.presentation.dto.SearchRequest
@@ -18,11 +17,6 @@ class SearchController(
     @Valid @ModelAttribute searchParam: SearchRequest
   ): ApiResponse {
     val result = searchService.getSearchResults(searchParam)
-    if (result != null) {
-      if (result.isEmpty()) {
-        throw EmptyResultException("No search results found for the keyword: ${searchParam.keyword}")
-      }
-    }
     return createApiResponse(data = result)
   }
 }
