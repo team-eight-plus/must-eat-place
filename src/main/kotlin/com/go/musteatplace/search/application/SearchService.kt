@@ -14,21 +14,24 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Service
-class SearchService(private val objectMapper: ObjectMapper) {
+class SearchService(
+  private val objectMapper: ObjectMapper,
+  private val restTemplate: RestTemplate,
+) {
   fun getSearchResults(searchParam: SearchRequest): SearchResponse {
-    val (keyword) = searchParam
+    val (keyword, sort) = searchParam
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
 
     try {
-      val searchResultsJson = naverSearchResults(encodedKeyword) ?: kakaoSearchResults(encodedKeyword)
-      val searchResults = parseSearchResults(searchResultsJson, if (searchResultsJson == naverSearchResults(encodedKeyword)) "NAVER" else "KAKAO")
+      val searchResultsJson = naverSearchResults(restTemplate, encodedKeyword, sort) ?: kakaoSearchResults(restTemplate, encodedKeyword)
+      val searchResults = parseSearchResults(searchResultsJson, if (searchResultsJson == naverSearchResults(restTemplate, encodedKeyword, sort)) "NAVER" else "KAKAO")
       return SearchResponse(keyword, searchResults ?: emptyList())
     } catch (e: RestClientException) {
       throw ServiceException("Failed to fetch search results", e)
     }
   }
 
-  fun naverSearchResults(encodedKeyword: String): String? {
+  fun naverSearchResults(restTemplate: RestTemplate, encodedKeyword: String, sort: String): String? {
     val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
     val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
 
@@ -38,12 +41,10 @@ class SearchService(private val objectMapper: ObjectMapper) {
       .queryParam("query", encodedKeyword)
       .queryParam("display", 5)
       .queryParam("start", 1)
-      .queryParam("sort", "random")
+      .queryParam("sort", sort)
       .encode()
       .build()
       .toUri()
-
-    val restTemplate = RestTemplate()
 
     val req = RequestEntity
       .get(uri)
@@ -53,7 +54,7 @@ class SearchService(private val objectMapper: ObjectMapper) {
     return restTemplate.exchange(req, String::class.java).body
   }
 
-  fun kakaoSearchResults(encodedKeyword: String): String? {
+  fun kakaoSearchResults(restTemplate: RestTemplate, encodedKeyword: String): String? {
     val kakaoApiKey = System.getenv("KAKAO_REST_API_KEY")
 
     val uri = UriComponentsBuilder
@@ -63,8 +64,6 @@ class SearchService(private val objectMapper: ObjectMapper) {
       .encode()
       .build()
       .toUri()
-
-    val restTemplate = RestTemplate()
 
     val req = RequestEntity
       .get(uri)
