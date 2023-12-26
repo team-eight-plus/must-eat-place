@@ -5,71 +5,86 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.go.musteatplace.search.presentation.dto.*
 import org.hibernate.service.spi.ServiceException
-import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.util.UriComponentsBuilder
+import reactor.core.publisher.Mono
+import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Service
 class SearchService(
   private val objectMapper: ObjectMapper,
-  private val restTemplate: RestTemplate,
+  private val webClient: WebClient,
 ) {
-  fun getSearchResults(searchParam: SearchRequest): SearchResponse {
+  fun getSearchResults(searchParam: SearchRequest): Mono<SearchResponse> {
     val (keyword, sort) = searchParam
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
 
-    try {
-      val searchResultsJson = naverSearchResults(restTemplate, encodedKeyword, sort) ?: kakaoSearchResults(restTemplate, encodedKeyword)
-      val searchResults = parseSearchResults(searchResultsJson, if (searchResultsJson == naverSearchResults(restTemplate, encodedKeyword, sort)) "NAVER" else "KAKAO")
-      return SearchResponse(keyword, searchResults ?: emptyList())
-    } catch (e: RestClientException) {
-      throw ServiceException("Failed to fetch search results", e)
+    return naverSearchResults(encodedKeyword, sort)
+      .flatMap { json -> processSearchResults(json, "NAVER", keyword) }
+      .onErrorResume { e ->
+        if (e is WebClientResponseException && e.statusCode.is5xxServerError) {
+          kakaoSearchResults(encodedKeyword)
+            .flatMap { json -> processSearchResults(json, "KAKAO", keyword) }
+        } else {
+          Mono.error(e)
+        }
+      }
+      .onErrorMap { e -> ServiceException("Failed to fetch search results", e) }
+  }
+
+  fun naverSearchResults(encodedKeyword: String, sort: String): Mono<String> {
+    val url = buildUri("https://openapi.naver.com/v1/search/local.json") {
+      queryParam("query", encodedKeyword)
+      queryParam("display", 5)
+      queryParam("start", 1)
+      queryParam("sort", sort)
     }
+
+    val headers = mapOf(
+      "X-Naver-Client-Id" to System.getenv("NAVER_CLIENT_ID"),
+      "X-Naver-Client-Secret" to System.getenv("NAVER_CLIENT_SECRET")
+    )
+
+    return webClient.get()
+      .uri(url)
+      .headers { httpHeaders -> headers.forEach { httpHeaders.add(it.key, it.value) } }
+      .retrieve()
+      .bodyToMono(String::class.java)
   }
 
-  fun naverSearchResults(restTemplate: RestTemplate, encodedKeyword: String, sort: String): String? {
-    val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
-    val naverOpenApiSecret = System.getenv("NAVER_CLIENT_SECRET")
+  fun kakaoSearchResults(encodedKeyword: String): Mono<String> {
+    val uri = buildUri("https://dapi.kakao.com/v2/local/search/keyword.json") {
+      queryParam("query", encodedKeyword)
+    }
 
-    val uri = UriComponentsBuilder
-      .fromUriString("https://openapi.naver.com")
-      .path("/v1/search/local.json")
-      .queryParam("query", encodedKeyword)
-      .queryParam("display", 5)
-      .queryParam("start", 1)
-      .queryParam("sort", sort)
+    val headers = mapOf(
+      "Authorization" to "KakaoAK ${System.getenv("KAKAO_REST_API_KEY")}"
+    )
+
+    return webClient.get()
+      .uri(uri)
+      .headers { httpHeaders -> headers.forEach { httpHeaders.add(it.key, it.value) } }
+      .retrieve()
+      .bodyToMono(String::class.java)
+  }
+
+  fun buildUri(baseUrl: String, uriBuilderAction: UriComponentsBuilder.() -> Unit): URI {
+    return UriComponentsBuilder
+      .fromUriString(baseUrl)
+      .apply(uriBuilderAction)
       .encode()
       .build()
       .toUri()
-
-    val req = RequestEntity
-      .get(uri)
-      .header("X-Naver-Client-Id", naverOpenApiId)
-      .header("X-Naver-Client-Secret", naverOpenApiSecret)
-      .build()
-    return restTemplate.exchange(req, String::class.java).body
   }
 
-  fun kakaoSearchResults(restTemplate: RestTemplate, encodedKeyword: String): String? {
-    val kakaoApiKey = System.getenv("KAKAO_REST_API_KEY")
-
-    val uri = UriComponentsBuilder
-      .fromUriString("https://dapi.kakao.com")
-      .path("/v2/local/search/keyword.json")
-      .queryParam("query", encodedKeyword)
-      .encode()
-      .build()
-      .toUri()
-
-    val req = RequestEntity
-      .get(uri)
-      .header("Authorization", "KakaoAK ${kakaoApiKey}")
-      .build()
-    return restTemplate.exchange(req, String::class.java).body
+  fun processSearchResults(json: String, serviceType: String, keyword: String): Mono<SearchResponse> {
+    return Mono.justOrEmpty(parseSearchResults(json, serviceType))
+      .map { searchResults -> SearchResponse(keyword, searchResults) }
+      .defaultIfEmpty(SearchResponse(keyword, emptyList()))
   }
 
   fun parseSearchResults(json: String?, serviceType: String): List<SearchResultsDto>? {

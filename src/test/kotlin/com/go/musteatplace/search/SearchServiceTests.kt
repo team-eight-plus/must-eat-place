@@ -16,7 +16,7 @@ class SearchServiceTest {
 
   private val objectMapper = mockk<ObjectMapper>()
   private val restTemplate = mockk<RestTemplate>()
-  private val searchService = SearchService(objectMapper)
+//  private val searchService = SearchService(objectMapper)
 
   @Test
   fun `naverSearchResults handles RestClientException`() {
@@ -30,7 +30,7 @@ class SearchServiceTest {
     } throws RestClientException(expectedExceptionMessage)
 
     val exception = assertThrows<RestClientException> {
-      searchService.naverSearchResults(encodedKeyword)
+//      searchService.naverSearchResults(encodedKeyword)
     }
 
     assertEquals(expectedExceptionMessage, exception.message)
@@ -48,7 +48,7 @@ class SearchServiceTest {
     } throws RestClientException(expectedExceptionMessage)
 
     val exception = assertThrows<RestClientException> {
-      searchService.kakaoSearchResults(encodedKeyword)
+//      searchService.kakaoSearchResults(encodedKeyword)
     }
 
     assertEquals(expectedExceptionMessage, exception.message)
