@@ -37,9 +37,9 @@ class SearchServiceTest {
   fun `getSearchResults handles failures from both APIs`() {
     val searchParam = SearchRequest("burger", "random")
 
-// TODO: type 에러 해결 필요
-//    every { searchKeywordRepository.findByKeyword("burger") } returns null
-//    every { searchKeywordRepository.save(any()) } answers { firstArg() }
+    // TODO: type 에러 해결 필요
+    //    every { searchKeywordRepository.findByKeyword("burger") } returns null
+    //    every { searchKeywordRepository.save(any()) } answers { firstArg() }
 
     every { responseSpec.bodyToMono(String::class.java) } returnsMany listOf(
       Mono.error(WebClientResponseException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", HttpHeaders.EMPTY, null, null)),
