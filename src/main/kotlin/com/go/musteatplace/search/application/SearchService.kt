@@ -3,93 +3,31 @@ package com.go.musteatplace.search.application
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.go.musteatplace.search.domain.SearchKeyword
-import com.go.musteatplace.search.domain.repository.SearchKeywordRepository
 import com.go.musteatplace.search.presentation.dto.*
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
-import jakarta.transaction.Transactional
 import org.hibernate.service.spi.ServiceException
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import java.net.URI
 
 @Service
 class SearchService(
   private val objectMapper: ObjectMapper,
-  private val webClient: WebClient,
-  private val searchKeywordRepository: SearchKeywordRepository
+  private val searchKeywordService: SearchKeywordService,
+  private val searchClient: SearchClient
   ) {
 
-  @Transactional
-  fun updateSearchKeywordCount(keyword: String) {
-    val searchKeyword: SearchKeyword = searchKeywordRepository.findByKeyword(keyword)
-      ?: SearchKeyword(0L, keyword)
-
-    searchKeyword.count += 1
-    searchKeywordRepository.save(searchKeyword)
-  }
   fun getSearchResults(searchParam: SearchRequest): Mono<SearchResponse> {
     val (keyword, sort) = searchParam
 
-    updateSearchKeywordCount(keyword)
+    searchKeywordService.updateSearchKeywordCount(keyword)
 
-    return naverSearchResults(keyword, sort)
+    return searchClient.naverSearchResults(keyword, sort)
       .flatMap { json -> processSearchResults(json, "NAVER", keyword) }
       .onErrorResume(WebClientResponseException::class.java) {
-        kakaoSearchResults(keyword)
+        searchClient.kakaoSearchResults(keyword)
           .flatMap { json -> processSearchResults(json, "KAKAO", keyword) }
       }
       .onErrorMap { e -> ServiceException("Failed to fetch search results", e) }
-  }
-
-  @CircuitBreaker(name = "kakaoSearch", fallbackMethod = "fallback")
-  fun naverSearchResults(encodedKeyword: String, sort: String): Mono<String> {
-    val url = buildUri("https://openapi.naver.com/v1/search/local.json") {
-      queryParam("query", encodedKeyword)
-      queryParam("display", 5)
-      queryParam("start", 1)
-      queryParam("sort", sort)
-    }
-
-    val headers = mapOf(
-      "X-Naver-Client-Id" to System.getenv("NAVER_CLIENT_ID"),
-      "X-Naver-Client-Secret" to System.getenv("NAVER_CLIENT_SECRET")
-    )
-
-    return webClient.get()
-      .uri(url)
-      .headers { httpHeaders -> headers.forEach { httpHeaders.add(it.key, it.value) } }
-      .retrieve()
-      .bodyToMono(String::class.java)
-  }
-
-  @CircuitBreaker(name = "naverSearch", fallbackMethod = "fallback")
-  fun kakaoSearchResults(encodedKeyword: String): Mono<String> {
-    val uri = buildUri("https://dapi.kakao.com/v2/local/search/keyword.json") {
-      queryParam("query", encodedKeyword)
-    }
-
-    val headers = mapOf(
-      "Authorization" to "KakaoAK ${System.getenv("KAKAO_REST_API_KEY")}"
-    )
-
-    return webClient.get()
-      .uri(uri)
-      .headers { httpHeaders -> headers.forEach { httpHeaders.add(it.key, it.value) } }
-      .retrieve()
-      .bodyToMono(String::class.java)
-  }
-
-  fun buildUri(baseUrl: String, uriBuilderAction: UriComponentsBuilder.() -> Unit): URI {
-    return UriComponentsBuilder
-      .fromUriString(baseUrl)
-      .apply(uriBuilderAction)
-      .encode()
-      .build()
-      .toUri()
   }
 
   fun processSearchResults(json: String, serviceType: String, keyword: String): Mono<SearchResponse> {
