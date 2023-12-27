@@ -3,7 +3,10 @@ package com.go.musteatplace.search.application
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.go.musteatplace.search.domain.SearchKeyword
+import com.go.musteatplace.search.domain.repository.SearchKeywordRepository
 import com.go.musteatplace.search.presentation.dto.*
+import jakarta.transaction.Transactional
 import org.hibernate.service.spi.ServiceException
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -18,15 +21,27 @@ import java.nio.charset.StandardCharsets
 class SearchService(
   private val objectMapper: ObjectMapper,
   private val webClient: WebClient,
+  private val searchKeywordRepository: SearchKeywordRepository,
 ) {
+
+  @Transactional
+  fun updateSearchKeywordCount(keyword: String) {
+    val searchKeyword: SearchKeyword = searchKeywordRepository.findByKeyword(keyword)
+      ?: SearchKeyword(0L, keyword)
+
+    searchKeyword.count += 1
+    searchKeywordRepository.save(searchKeyword)
+  }
   fun getSearchResults(searchParam: SearchRequest): Mono<SearchResponse> {
     val (keyword, sort) = searchParam
     val encodedKeyword = URLEncoder.encode(keyword, StandardCharsets.UTF_8.toString())
 
+    updateSearchKeywordCount(keyword)
+
     return naverSearchResults(encodedKeyword, sort)
       .flatMap { json -> processSearchResults(json, "NAVER", keyword) }
       .onErrorResume { e ->
-        if (e is WebClientResponseException && e.statusCode.is5xxServerError) {
+        if (e is WebClientResponseException) {
           kakaoSearchResults(encodedKeyword)
             .flatMap { json -> processSearchResults(json, "KAKAO", keyword) }
         } else {
