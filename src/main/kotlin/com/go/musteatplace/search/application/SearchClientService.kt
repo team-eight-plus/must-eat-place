@@ -8,7 +8,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 
 @Service
-class SearchClient(
+class SearchClientService(
   private val webClient: WebClient
 ) {
   @CircuitBreaker(name = "kakaoSearch", fallbackMethod = "fallback")

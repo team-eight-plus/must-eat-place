@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 class SearchService(
   private val objectMapper: ObjectMapper,
   private val searchKeywordService: SearchKeywordService,
-  private val searchClient: SearchClient
+  private val searchClientService: SearchClientService
   ) {
 
   fun getSearchResults(searchParam: SearchRequest): Mono<SearchResponse> {
@@ -21,10 +21,10 @@ class SearchService(
 
     searchKeywordService.updateSearchKeywordCount(keyword)
 
-    return searchClient.naverSearchResults(keyword, sort)
+    return searchClientService.naverSearchResults(keyword, sort)
       .flatMap { json -> processSearchResults(json, "NAVER", keyword) }
       .onErrorResume(WebClientResponseException::class.java) {
-        searchClient.kakaoSearchResults(keyword)
+        searchClientService.kakaoSearchResults(keyword)
           .flatMap { json -> processSearchResults(json, "KAKAO", keyword) }
       }
       .onErrorMap { e -> ServiceException("Failed to fetch search results", e) }
