@@ -2,55 +2,49 @@ package com.go.musteatplace.search
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.go.musteatplace.search.application.SearchService
+import com.go.musteatplace.search.presentation.dto.SearchRequest
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Assertions.*
+import org.hibernate.service.spi.ServiceException
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.springframework.http.RequestEntity
-import org.springframework.web.client.RestClientException
-import org.springframework.web.client.RestTemplate
-
+import org.springframework.http.*
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import reactor.core.publisher.Mono
+import reactor.test.StepVerifier
+import java.net.URI
 
 class SearchServiceTest {
 
-  private val objectMapper = mockk<ObjectMapper>()
-  private val restTemplate = mockk<RestTemplate>()
-//  private val searchService = SearchService(objectMapper)
+  private val objectMapper = mockk<ObjectMapper>(relaxed = true)
+  private val webClient = mockk<WebClient>()
+  private val requestHeadersUriSpec = mockk<WebClient.RequestHeadersUriSpec<*>>()
+  private val requestHeadersSpec = mockk<WebClient.RequestHeadersSpec<*>>()
+  private val responseSpec = mockk<WebClient.ResponseSpec>()
 
-  @Test
-  fun `naverSearchResults handles RestClientException`() {
-    val encodedKeyword = "encodedKeyword"
-    val failMessage = """{"errorMessage":"Not Exist Client ID : Authentication failed. (인증에 실패했습니다.)","errorCode":"024"}"""
-    val expectedExceptionMessage = "401 Unauthorized: \"$failMessage\""
+  private val searchService = SearchService(objectMapper, webClient)
 
-
-    every {
-      restTemplate.exchange(any<RequestEntity<String>>(), eq(String::class.java))
-    } throws RestClientException(expectedExceptionMessage)
-
-    val exception = assertThrows<RestClientException> {
-//      searchService.naverSearchResults(encodedKeyword)
-    }
-
-    assertEquals(expectedExceptionMessage, exception.message)
+  init {
+    every { webClient.get() } returns requestHeadersUriSpec
+    every { requestHeadersUriSpec.uri(any<URI>()) } returns requestHeadersSpec
+    every { requestHeadersSpec.headers(any()) } returns requestHeadersSpec
+    every { requestHeadersSpec.retrieve() } returns responseSpec
   }
 
   @Test
-  fun `kakaoSearchResults handles RestClientException`() {
-    val encodedKeyword = "encodedKeyword"
-    val failMessage = """{"errorType":"AccessDeniedError","message":"wrong appKey(null) format"}"""
-    val expectedExceptionMessage = "401 Unauthorized: \"$failMessage\""
+  fun `getSearchResults handles failures from both APIs`() {
+    val searchParam = SearchRequest("burger", "random")
 
+    every { responseSpec.bodyToMono(String::class.java) } returns Mono.error(
+      WebClientResponseException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", HttpHeaders.EMPTY, null, null)
+    )
 
-    every {
-      restTemplate.exchange(any<RequestEntity<String>>(), eq(String::class.java))
-    } throws RestClientException(expectedExceptionMessage)
+    every { responseSpec.bodyToMono(String::class.java) } returns Mono.error(
+      WebClientResponseException(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", HttpHeaders.EMPTY, null, null)
+    )
 
-    val exception = assertThrows<RestClientException> {
-//      searchService.kakaoSearchResults(encodedKeyword)
-    }
-
-    assertEquals(expectedExceptionMessage, exception.message)
+    StepVerifier.create(searchService.getSearchResults(searchParam))
+      .expectErrorMatches { throwable -> throwable is ServiceException }
+      .verify()
   }
 }
