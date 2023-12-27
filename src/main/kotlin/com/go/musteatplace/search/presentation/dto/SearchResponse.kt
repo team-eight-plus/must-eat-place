@@ -76,4 +76,3 @@ data class SearchResponse(
   val keyword: String,
   val searchResults: List<SearchResultsDto>
 )
-

@@ -17,7 +17,6 @@ import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
-
 @Service
 class SearchService(
   private val objectMapper: ObjectMapper,
