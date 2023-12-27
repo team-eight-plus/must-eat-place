@@ -14,7 +14,7 @@ class SearchService(
   private val objectMapper: ObjectMapper,
   private val searchKeywordService: SearchKeywordService,
   private val searchClientService: SearchClientService
-  ) {
+) {
 
   fun getSearchResults(searchParam: SearchRequest): Mono<SearchResponse> {
     val (keyword, sort) = searchParam
