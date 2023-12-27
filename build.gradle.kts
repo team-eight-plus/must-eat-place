@@ -29,12 +29,14 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-jdbc")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("org.springframework.boot:spring-boot-starter-webflux")
 
   implementation("mysql:mysql-connector-java:8.0.31")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
   testImplementation("io.mockk:mockk:1.12.0")
+  testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
