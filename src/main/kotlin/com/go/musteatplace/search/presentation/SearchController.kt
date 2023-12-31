@@ -6,7 +6,6 @@ import com.go.musteatplace.search.presentation.dto.SearchRequest
 import com.go.musteatplace.search.presentation.dto.createApiResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/search")
@@ -16,8 +15,8 @@ class SearchController(
   @GetMapping("/place")
   fun getSearchInfos(
     @Valid @ModelAttribute searchParam: SearchRequest
-  ): Mono<ApiResponse> {
+  ): List<ApiResponse>? {
     return searchService.getSearchResults(searchParam)
-      .map { result -> createApiResponse(data = result) }
+      ?.map { result -> createApiResponse(data = result) }
   }
 }
