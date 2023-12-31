@@ -17,6 +17,6 @@ class SearchController(
     @Valid @ModelAttribute searchParam: SearchRequest
   ): List<ApiResponse>? {
     return searchService.getSearchResults(searchParam)
-        ?.map { result -> createApiResponse(data = result) }
+      ?.map { result -> createApiResponse(data = result) }
   }
 }

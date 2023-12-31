@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.util.UriComponentsBuilder
 
-interface KakaoSearchClient: SearchClient {
+interface KakaoSearchClient : SearchClient {
   @Component
   class KakaoSearchClientImpl(
     private val objectMapper: ObjectMapper
@@ -30,7 +30,7 @@ interface KakaoSearchClient: SearchClient {
 
       val req = RequestEntity
         .get(uri)
-        .header("Authorization", "KakaoAK ${kakaoApiKey}")
+        .header("Authorization", "KakaoAK $kakaoApiKey")
         .build()
 
       val res = restTemplate.exchange(req, String::class.java)

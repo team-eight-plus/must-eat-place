@@ -1,19 +1,6 @@
 package com.go.musteatplace.search
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.go.musteatplace.search.application.SearchService
-import com.go.musteatplace.search.domain.repository.SearchKeywordRepository
-import com.go.musteatplace.search.presentation.dto.SearchRequest
-import io.mockk.every
-import io.mockk.mockk
-import org.hibernate.service.spi.ServiceException
-import org.junit.jupiter.api.Test
 import org.springframework.http.*
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import reactor.core.publisher.Mono
-import reactor.test.StepVerifier
-import java.net.URI
 
 class SearchServiceTest {
 
