@@ -1,8 +1,6 @@
 package com.go.musteatplace.search.application
 
 import com.go.musteatplace.search.presentation.dto.SearchRequest
-import com.go.musteatplace.search.presentation.dto.SearchResponse
-import com.go.musteatplace.search.presentation.dto.SearchResultsDto
 import org.springframework.stereotype.Component
 
 @Component

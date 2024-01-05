@@ -1,7 +1,6 @@
 package com.go.musteatplace.search.application
 
 import com.go.musteatplace.search.domain.repository.SearchHistoryRepository
-import com.go.musteatplace.search.presentation.dto.SearchResponse
 import org.springframework.stereotype.Component
 
 @Component

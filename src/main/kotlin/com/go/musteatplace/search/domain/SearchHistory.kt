@@ -1,7 +1,6 @@
 package com.go.musteatplace.search.domain
 
 import com.go.musteatplace.search.presentation.dto.SearchResponse
-import com.go.musteatplace.search.presentation.dto.SearchResultsDto
 import jakarta.persistence.*
 
 @Entity
