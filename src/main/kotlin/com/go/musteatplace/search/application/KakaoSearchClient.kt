@@ -13,7 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder
 interface KakaoSearchClient : SearchClient {
   @Component
   class KakaoSearchClientImpl(
-    private val objectMapper: ObjectMapper
+//    private val objectMapper: ObjectMapper
   ) : KakaoSearchClient {
     override fun search(request: SearchRequest): String? {
       val kakaoApiKey = System.getenv("KAKAO_REST_API_KEY")
@@ -33,18 +33,18 @@ interface KakaoSearchClient : SearchClient {
         .header("Authorization", "KakaoAK $kakaoApiKey")
         .build()
 
-      val res = restTemplate.exchange(req, String::class.java)
+      val res = restTemplate.exchange(req, String::class.java) // type 확인
 
       return res.body
     }
 
-    override fun parseSearchResults(res: String): List<SearchResultsDto> {
-      try {
-        val kakaoSearchResponse = objectMapper.readValue<KakaoSearchResponse>(res)
-        return kakaoSearchResponse.documents.map { KakaoSearchResultsAdapter(it) }
-      } catch (e: JsonProcessingException) {
-        throw ServiceException("Error parsing search results", e)
-      }
-    }
+//    override fun parseSearchResults(res: String): List<SearchResultsDto> {
+//      try {
+//        val kakaoSearchResponse = objectMapper.readValue<KakaoSearchResponse>(res)
+//        return kakaoSearchResponse.documents.map { KakaoSearchResultsAdapter(it) }
+//      } catch (e: JsonProcessingException) {
+//        throw ServiceException("Error parsing search results", e)
+//      }
+//    }
   }
 }

@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service
 
 @Service
 class SearchService(
-  private val searchClient: SearchClient
+  private val searchManager: SearchWorker
 ) {
-  fun getSearchResults(searchParam: SearchRequest): List<SearchResultsDto>? {
-    val res = searchClient.search(searchParam)
-    return res?.let { searchClient.parseSearchResults(it) }
+  fun search(request: SearchRequest): List<SearchResultsDto>? {
+    val res = searchManager.searchActual(request) ?: throw RuntimeException("Fail to get search result")
+    return res?.let { searchManager.parseSearchResults(it) }
   }
 }

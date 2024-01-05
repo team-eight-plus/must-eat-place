@@ -73,6 +73,6 @@ data class KakaoSearchResultsDto(
 )
 
 data class SearchResponse(
-//  val keyword: String,
+  val keyword: String,
   val searchResults: List<SearchResultsDto>
 )
