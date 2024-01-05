@@ -1,10 +1,6 @@
 package com.go.musteatplace.search.application
 
-import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.go.musteatplace.search.presentation.dto.*
-import org.hibernate.service.spi.ServiceException
 import org.springframework.context.annotation.Primary
 import org.springframework.http.RequestEntity
 import org.springframework.stereotype.Component
@@ -14,7 +10,7 @@ import org.springframework.web.util.UriComponentsBuilder
 interface NaverSearchClient : SearchClient {
   @Component @Primary
   class NaverSearchClientImpl(
-    private val objectMapper: ObjectMapper
+//    private val objectMapper: ObjectMapper
   ) : NaverSearchClient {
     override fun search(request: SearchRequest): String? {
       val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
@@ -43,13 +39,13 @@ interface NaverSearchClient : SearchClient {
       return res.body
     }
 
-    override fun parseSearchResults(res: String): List<SearchResultsDto>? {
-      try {
-        val naverSearchResponse = objectMapper.readValue<NaverSearchResponse>(res)
-        return naverSearchResponse.items.map { NaverSearchResultsAdapter(it) }
-      } catch (e: JsonProcessingException) {
-        throw ServiceException("Error parsing search results", e)
-      }
-    }
+//    override fun parseSearchResults(res: String): List<SearchResultsDto>? {
+//      try {
+//        val naverSearchResponse = objectMapper.readValue<NaverSearchResponse>(res)
+//        return naverSearchResponse.items.map { NaverSearchResultsAdapter(it) }
+//      } catch (e: JsonProcessingException) {
+//        throw ServiceException("Error parsing search results", e)
+//      }
+//    }
   }
 }
