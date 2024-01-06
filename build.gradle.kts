@@ -32,6 +32,9 @@ dependencies {
 
   implementation("mysql:mysql-connector-java:8.0.31")
 
+  implementation(group = "ca.pjer", name = "logback-awslogs-appender", version = "1.6.0")
+  implementation("org.codehaus.janino:janino:3.1.7")
+
   implementation("io.github.resilience4j:resilience4j-spring-boot2:1.7.1")
   implementation("io.github.resilience4j:resilience4j-reactor:1.7.0")
   implementation("io.github.resilience4j:resilience4j-all:1.7.1")
