@@ -16,4 +16,3 @@ class JpaQueryFactoryConfig {
   fun jpaQueryFactory() =
     JPAQueryFactory(JPQLTemplates.DEFAULT, mainEntityManager)
 }
-

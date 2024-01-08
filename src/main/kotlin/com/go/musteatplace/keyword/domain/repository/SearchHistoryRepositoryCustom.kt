@@ -5,4 +5,3 @@ import KeywordResponse
 interface SearchHistoryRepositoryCustom {
   fun getPopularKeywords(): List<KeywordResponse>
 }
-

@@ -16,7 +16,7 @@ class SearchHistory(
   val phone: String,
   val mapx: String,
   val mapy: String
-): BaseEntity() {
+) : BaseEntity() {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null
