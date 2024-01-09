@@ -7,6 +7,8 @@ plugins {
   kotlin("jvm") version "1.9.20"
   kotlin("plugin.spring") version "1.9.20"
   kotlin("plugin.jpa") version "1.9.20"
+  kotlin("kapt") version "1.9.20"
+  id("com.ewerk.gradle.plugins.querydsl") version "1.0.10"
 }
 
 group = "com.go"
@@ -32,8 +34,13 @@ dependencies {
 
   implementation("mysql:mysql-connector-java:8.0.31")
 
-  implementation(group = "ca.pjer", name = "logback-awslogs-appender", version = "1.6.0")
-  implementation("org.codehaus.janino:janino:3.1.7")
+  val querydslVersion = "5.0.0" //querydsl
+  implementation("com.querydsl:querydsl-jpa:$querydslVersion:jakarta")
+  kapt("com.querydsl:querydsl-apt:5.0.0:jakarta")
+  kapt("com.querydsl:querydsl-kotlin-codegen:5.0.0")
+
+  kapt("com.querydsl:querydsl-apt:$querydslVersion:jpa")
+  annotationProcessor("com.querydsl:querydsl-apt:${dependencyManagement.importedProperties["querydsl.version"]}:jakarta")
 
   implementation("io.github.resilience4j:resilience4j-spring-boot2:1.7.1")
   implementation("io.github.resilience4j:resilience4j-reactor:1.7.0")

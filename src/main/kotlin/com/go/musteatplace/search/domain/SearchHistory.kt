@@ -1,5 +1,6 @@
 package com.go.musteatplace.search.domain
 
+import com.go.musteatplace.search.domain.common.BaseEntity
 import com.go.musteatplace.search.presentation.dto.SearchResponse
 import jakarta.persistence.*
 
@@ -15,7 +16,7 @@ class SearchHistory(
   val phone: String,
   val mapx: String,
   val mapy: String
-) {
+) : BaseEntity() {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null
