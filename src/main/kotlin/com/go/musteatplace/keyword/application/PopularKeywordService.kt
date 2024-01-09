@@ -9,7 +9,6 @@ class PopularKeywordService(
   private val repository: SearchHistoryRepository,
 ) {
   fun getTop10PopularKeywords(): List<KeywordResponse> {
-//    val updatedDateTime = LocalDateTime.now().minusDays(3)
     return repository.findTop10PopularKeywords()
   }
 }

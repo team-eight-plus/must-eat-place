@@ -24,7 +24,7 @@ class SearchHistoryRepositoryCustomImpl(
         )
       )
       .from(searchHistory)
-      .where(searchHistory.createdDateTime.after(LocalDateTime.now().minusDays(3)))
+      .where(searchHistory.createdDateTime.after(LocalDateTime.now().minusDays(3))) // TODO: check TIMEZONE
       .groupBy(searchHistory.keyword)
       .orderBy(searchHistory.keyword.count().desc())
       .limit(10)

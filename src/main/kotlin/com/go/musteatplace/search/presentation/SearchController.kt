@@ -5,6 +5,7 @@ import com.go.musteatplace.search.presentation.dto.ApiResponse
 import com.go.musteatplace.search.presentation.dto.SearchRequest
 import com.go.musteatplace.search.presentation.dto.createApiResponse
 import jakarta.validation.Valid
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -15,8 +16,9 @@ class SearchController(
   @GetMapping("/place")
   fun getSearchInfos(
     @Valid @ModelAttribute searchParam: SearchRequest
-  ): List<ApiResponse>? {
-    return searchService.search(searchParam)
-      ?.map { result -> createApiResponse(data = result) }
+  ): ResponseEntity<ApiResponse> {
+    val searchResults = searchService.search(searchParam)
+    val response = createApiResponse(data = searchResults)
+    return ResponseEntity.ok(response)
   }
 }
