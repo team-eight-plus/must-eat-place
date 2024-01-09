@@ -10,7 +10,6 @@ import org.springframework.web.util.UriComponentsBuilder
 interface NaverSearchClient : SearchClient {
   @Component @Primary
   class NaverSearchClientImpl(
-//    private val objectMapper: ObjectMapper
   ) : NaverSearchClient {
     override fun search(request: SearchRequest): String? {
       val naverOpenApiId = System.getenv("NAVER_CLIENT_ID")
@@ -38,14 +37,5 @@ interface NaverSearchClient : SearchClient {
       val res = restTemplate.exchange(req, String::class.java)
       return res.body
     }
-
-//    override fun parseSearchResults(res: String): List<SearchResultsDto>? {
-//      try {
-//        val naverSearchResponse = objectMapper.readValue<NaverSearchResponse>(res)
-//        return naverSearchResponse.items.map { NaverSearchResultsAdapter(it) }
-//      } catch (e: JsonProcessingException) {
-//        throw ServiceException("Error parsing search results", e)
-//      }
-//    }
   }
 }
