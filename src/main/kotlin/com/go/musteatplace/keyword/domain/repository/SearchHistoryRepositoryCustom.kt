@@ -1,7 +1,8 @@
 package com.go.musteatplace.keyword.domain.repository
 
 import KeywordResponse
+import java.time.LocalDateTime
 
 interface SearchHistoryRepositoryCustom {
-  fun getPopularKeywords(): List<KeywordResponse>
+  fun findTop10PopularKeywords(): List<KeywordResponse>
 }

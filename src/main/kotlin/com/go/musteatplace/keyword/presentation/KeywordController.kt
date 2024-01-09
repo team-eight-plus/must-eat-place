@@ -14,7 +14,7 @@ class KeywordController(
 ) {
   @GetMapping("/rank")
   fun getKeywordRanks(): List<ApiResponse>? {
-    return popularKeywordService.getRank()
+    return popularKeywordService.getTop10PopularKeywords()
       ?.map { result -> createApiResponse(data = result) }
   }
 }

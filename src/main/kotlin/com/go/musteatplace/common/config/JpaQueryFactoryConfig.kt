@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class JpaQueryFactoryConfig {
-  @PersistenceContext(unitName = "mainEntityManagerFactory")
+  @PersistenceContext(unitName = "entityManagerFactory")
   private lateinit var mainEntityManager: EntityManager
 
   @Bean(name = ["mainJpaQueryFactory"])
