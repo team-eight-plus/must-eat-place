@@ -3,7 +3,6 @@ package com.go.musteatplace.keyword.application
 import KeywordResponse
 import com.go.musteatplace.search.domain.repository.SearchHistoryRepository
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 
 @Service
 class PopularKeywordService(

@@ -4,8 +4,6 @@ import KeywordResponse
 import com.go.musteatplace.search.domain.QSearchHistory
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import org.springframework.beans.factory.annotation.Qualifier
 import java.time.LocalDateTime
 
